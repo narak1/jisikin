@@ -1,0 +1,10 @@
+apple 	1001 CS seoul jongro
+bob 	1002 CS seoul gangnam
+cook	1003 SC busan donggu
+doll	1004 MA busan namgu
+etta	1005 EN daegu seogu
+forest	1006 FR daegu bukgu
+griffin	1007 CN kwangju donggu
+hill	1008 EN kwangji seogu
+intro	1009 ME seoul yongsan
+jingle	1010 EE seoul guro
