@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct _information
 {
@@ -28,8 +29,8 @@ typedef struct _lendinfor
 {
 	information *customer;
 	tapeinfor *tape;
-	time_t lend_day;
 	int lend_fee;
+	time_t lend_day;
 	struct _lendinfor *next;
 } lendinfo;
 
@@ -53,12 +54,12 @@ void addmember()
 	New = (information *)calloc(1, sizeof(information));
 	printf("회원가입을 선택하셨습니다.\n");
 	printf("이    름 : ");
-	fgets(New->name, sizeof(New->name), stdin);
+	gets(New->name);
 	printf("나    이 : ");
 	scanf("%d", &New->age);
 	getchar();
 	printf("주    소 : ");
-	fgets(New->add, sizeof(New->add), stdin);
+	gets(New->add);
 	printf("전화번호 : ");
 	scanf("%d", &New->phone);
 	getchar();
@@ -73,7 +74,7 @@ information *findmember()
 	information *s;
 
 	printf("검색할 회원의 이름을 입력하세요: ");
-	fgets(name, sizeof(name), stdin);
+	gets(name);
 	printf("검색할 회원의 전화번호를 입력하세요: ");
 	scanf("%d", &phone);
 	getchar();
@@ -106,8 +107,7 @@ void delmember()
 	information *s;
 
 	printf("삭제할 회원의 이름을 입력하세요: ");
-	fgets(name, sizeof(name), stdin);
-	name[strlen(name) - 1] = 0x00;
+	gets(name);
 	printf("삭제할 회원의 전화번호를 입력하세요: ");
 	scanf("%d", &phone);
 	getchar();
@@ -146,12 +146,12 @@ void addtape()
 	N = (tapeinfor *)calloc(1, sizeof(tapeinfor));
 	printf("Tape추가를 선택하셨습니다.\n");
 	printf("Tape 제목 : ");
-	fgets(N->tapename, sizeof(N->tapename), stdin);
+	gets(N->tapename);
 	printf("Tape개봉일 : ");
 	scanf("%d", &N->date);
 	getchar();
 	printf("감    독 : ");
-	fgets(N->director, sizeof(N->director), stdin);
+	gets(N->director);
 	printf("등    급 : ");
 	scanf("%d", &N->grade);
 	getchar();
@@ -165,7 +165,7 @@ tapeinfor *findtape()
 	tapeinfor *q;
 
 	printf("검색할 tape의 제목을 입력하세요: ");
-	fgets(na, sizeof(na), stdin);
+	gets(na);
 	q = d->ne;
 	while (q)
 	{
@@ -194,7 +194,7 @@ void deltape()
 	tapeinfor *s;
 
 	printf("삭제할 tape의 제목을 입력하세요: ");
-	fgets(name, sizeof(name), stdin);
+	gets(name);
 
 	p = d;
 	s = p->ne;
@@ -226,23 +226,95 @@ void tapelist()
 	}
 }
 
+void print_lend_info(lendinfo *info)
+{
+	information *c;
+	tapeinfor *t;
+	struct tm *tp;
+	char buf[40];
+
+	c = info->customer;
+	t = info->tape;
+	tp = localtime(&info->lend_day);
+	strftime(buf, 40, "%Y-%m-%d %H:%M:%S", tp);
+
+	printf("대여고객 :%s\n", c->name);
+	printf("전화번호 :%d\n", c->phone);
+	printf("tape제목 :%s\n", t->tapename);
+	printf("대 여 료 :%d\n", info->lend_fee);
+	printf("대 여 일 :%s\n", buf);
+}
+
 void lend()
 {
-	information *p;
 	tapeinfor *t;
-	
-	
+	lendinfo *info;
 
-void tapereturn();
-void lending();
+	t = findtape();
+	// 데이프가 대여된 상태인지 확인
+	info = tapelend;
+	while( info ) {
+		if( info->tape == t ) {		// find tape
+			print_lend_info(info);
+			return;
+		}
+		info = info->next;
+	}
+
+	info = (lendinfo *) malloc(sizeof(lendinfo));
+	info->tape = t;
+	info->customer = findmember();
+	printf("대여료: ");
+	scanf("%d", &info->lend_fee);
+	info->lend_day = time(NULL);
+	info->next = tapelend;
+	tapelend = info;
+}
+
+void tapereturn()
+{
+	tapeinfor *t;
+	lendinfo *info, *pre;
+
+	t = findtape();
+	// 데이프가 대여된 상태인지 확인
+	info = tapelend;
+	while( info ) {
+		if( info->tape == t ) {		// find tape
+			break;
+		}
+		pre = info;
+		info = info->next;
+	}
+
+	if( info ) {
+		print_lend_info(info);
+		if( info == tapelend ) {
+			tapelend = info->next;
+		}
+		else {
+			pre->next = info->next;
+		}
+		free(info);
+	}
+}
+
+void lending()
+{
+	lendinfo *info;
+	info = tapelend;
+	while( info ) {
+		print_lend_info(info);
+		info = info->next;
+	}
+}
 
 int main()
 {
 	int video;
 
 	InitInfo();
-	while(1)
-	{
+	do {
 		printf("-------MENU------------\n\n");
 		printf("1.  회 원 가 입\n");
 		printf("2.  회 원 검 색\n");
@@ -276,5 +348,5 @@ int main()
 			case 12 :	printf("프로그램을 종료합니다.\n");	break;
 			default :	printf("잘못누르셨습니다. 다시입력하세요.\n");
 		}
-	}
+	} while(video!=12);
 }
