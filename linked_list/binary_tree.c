@@ -189,21 +189,28 @@ STUDENT *binarytree_delete(STUDENT **cur, char *key)
 	if( *cur == NULL ) return NULL;
 
 	node = *cur;
+	leaf = NULL;
 	if( strcmp(node->id, key) == 0 ) {
 		if( is_leaf(node) ) {
 			*cur = NULL;
 			return node;
 		}
 
-		if( node->left != NULL && is_leaf(node->left) ) {
-			leaf = node->left;
-			node->left = NULL;
+		// promotion child
+		//
+		if( node->left != NULL && node->left->right == NULL ) {
+			node->left->right = node->right;
+			*cur = node->left;
+			return node;
 		}
-		else if( node->right != NULL && is_leaf(node->right) ) {
-			leaf = node->right;
-			node->right = NULL;
+		if( node->right != NULL && node->right->left == NULL ) {
+			node->right->left = node->left;
+			*cur = node->right;
+			return node;
 		}
 
+		// get available leaf
+		//
 		if( leaf == NULL ) {
 			leaf = get_right_leaf(node->left);
 			if( leaf == NULL ) {
