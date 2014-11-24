@@ -2,14 +2,14 @@
 	D.E. boundary value problem
 		f(y, y', y", ...) = g(x) ; y(x0)=A, y(xN)=B
 
-		-y" + y' = 1 ; y(0)=0 , y(1)=1
+		y" + y' = 0 ; y(0)=0 , y(pi/2)=1
 
 		y' = ツy / ツx = (yn - y(n-1)) / h
 		y" = ツy' / ツx = (y(n+1) - 2yn + y(n-1) / h^2
 		y' = (y(n+1) - yn) / h
 		y' = (y(n+1) - y(n-1)) / 2h
 
-		(-1/h^2 + 1/2h) y(n+1) + 2/h^2 yn + (-1/h^2 - 1/2h) y(n-1) = 1
+		(1/h^2) y(n+1) + (1 - 2/h^2) yn + (1/h^2) y(n-1) = 0
 		y0 = 0
 		yN = 1
 
@@ -25,15 +25,15 @@
 		      a4 b4 c4  y4   d4
 		 0       a5 b5  y5   d5
 
-		c'i = ci / bi 				(i=1)
-		    = ci / (bi - aic'(i-1)) (n=2,...)
-		d'i = di / bi (i=1)
-		    = (di - aid'(i-1)) / (bi - aic'(i-1))
+	c'i = ci / bi 				(i=1)
+	    = ci / (bi - aic'(i-1)) (n=2,...)
+	d'i = di / bi (i=1)
+	    = (di - aid'(i-1)) / (bi - aic'(i-1))
 
-		yn = d'n
-		yi = d'i - c'i y(i+1)
+	yn = d'n
+	yi = d'i - c'i y(i+1)
 
-	Mathmatical solution: f(x) = x
+	mathmatical solution: y(x) = sin(x)
 */
 
 #define MAXSTEP 1000
@@ -57,33 +57,33 @@ int main(int argc, char **argv)
 
 	x0 = 0;
 	y[0] = 0;		// B.C.
-	xN = 1;
+	xN = M_PI/2;
 	y[step] = 1;	// B.C.
 	h = (xN - x0) / step;
 	h2 = h * h;		// h^2
 
 	for( i=1 ; i<step ; i++ ) {
 		x = x0 + i * h;
-		a = (-1/h2 + 1/(2*h));
-		b = 2/h2;
-		c = (-1/h2 - 1/(2*h));
+		a = 1/h2;
+		b = 1 - 2/h2;
+		c = 1/h2;
 		if( i == 1 ) {
 			m[0][i] = 0;	// b.c
 			m[1][i] = b;
 			m[2][i] = c;
-			f[i] = 1;
+			f[i] = 0;
 		}
 		else if( i == step-1 ) {
 			m[0][i] = a;
 			m[1][i] = b;
 			m[2][i] = 0;	// b.c
-			f[i] = 1 - c;
+			f[i] = -c;
 		}
 		else {
 			m[0][i] = a;
 			m[1][i] = b;
 			m[2][i] = c;
-			f[i] = 1;
+			f[i] = 0;
 		}
 	}
 
@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 		tmp_f[i] = (f[i] - m[0][i] * tmp_f[i-1]) / tmp;
 	}
 
+
 	// print modified coefficient
 	//
 	for( i=1 ; i<step ; i++ ) {
@@ -138,7 +139,7 @@ int main(int argc, char **argv)
 	//
 	for( i=0 ; i<=step ; i++ ) {
 		x = x0+i*h;
-		tmp = fabs(y[i] - x);
+		tmp = fabs(y[i] - sin(x));
 		printf("%3d: f(%.2lf) = %8.3lf, error=%g\n", i, x, y[i], tmp);
 	}
 }
