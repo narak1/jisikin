@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <cmath>
 using namespace std;
 
@@ -25,6 +25,10 @@ public:
 	Complex operator/(const Complex& c) const;
 
 	friend Complex operator*(const double a, const Complex& c);
+
+	double abs() const { return std::sqrt(real*real + imag*imag); };
+	double amp() const { return atan2(imag, real); };
+	Complex sqrt(Complex* r2=NULL) const;
 
 	void pirnt();
 	friend ostream& operator<<(ostream& os, const Complex& c);
@@ -97,6 +101,15 @@ Complex Complex::operator/(const Complex& c) const
 	return t;
 }
 
+Complex Complex::sqrt(Complex* r2) const
+{
+	double r = this->abs();
+	double a = this->amp();
+	Complex t(std::sqrt(r) * cos(a/2), std::sqrt(r) * sin(a/2));
+	if( r2 != NULL ) *r2 = -t;
+	return t;
+}
+
 ostream& operator<<(ostream& os, const Complex& c)
 {
 	if( c.real != 0 ) os << c.real;
@@ -120,10 +133,10 @@ class QuadEqn
 	Complex r[2];
 public:
 	void Set(const Complex& a, const Complex& b, const Complex& c);
-	bool Solve(Complex* r1=NULL, Complex* r2=NULL);
+	void Solve(Complex* r1=NULL, Complex* r2=NULL);
 	Complex& Get(int idx=0) { return r[idx]; };
-	friend ostream& operator<<(ostream& os, const QuadEqn& eqn);
 	bool Verify(int idx=0);
+	friend ostream& operator<<(ostream& os, const QuadEqn& eqn);
 };
 
 void QuadEqn::Set(const Complex& a, const Complex& b, const Complex& c)
@@ -131,39 +144,22 @@ void QuadEqn::Set(const Complex& a, const Complex& b, const Complex& c)
 	this->a = a, this->b = b, this->c = c;
 }
 
-bool QuadEqn::Solve(Complex* r1, Complex* r2)
+void QuadEqn::Solve(Complex* r1, Complex* r2)
 {
-	Complex det = this->b * this->b - 4 * this->a * this->c;
-	if( det.getimag() != 0 ) {
-		return false;
-	}
+	Complex d = this->b * this->b - 4 * this->a * this->c;
+	Complex t = d.sqrt();
 
-	double d = det.getReal();
+	r[0] = (-this->b - t) / (2*a);
+	r[1] = (-this->b + t) / (2*a);
 
-	if( d == 0 ) {
-		r[0] = r[1] = -this->b / (2*a);
-	}
-	else if( d > 0 ) {
-		Complex t(sqrt(d), 0);
-		r[0] = (-this->b - t) / (2*a);
-		r[1] = (-this->b + t) / (2*a);
-	}
-	else {
-		Complex t(0, sqrt(-d));
-		r[0] = (-this->b - t) / (2*a);
-		r[1] = (-this->b + t) / (2*a);		
-	}
-	
 	if( r1 != NULL ) *r1 = r[0];
 	if( r2 != NULL ) *r2 = r[1];
-	
-	return true;
 }
 
 bool QuadEqn::Verify(int idx)
 {
 	Complex t = a * r[idx] * r[idx] + b * r[idx] + c;
-	return (fabs(t.getReal()) < 1e-15) && (fabs(t.getimag()) < 1e-15);
+	return (fabs(t.getReal()) < 1e-10) && (fabs(t.getimag()) < 1e-10);
 }
 
 ostream& operator<<(ostream& os, const QuadEqn& eqn)
@@ -200,17 +196,12 @@ int main()
 	cout << "Input constant term's complex value : ";
 	cin >> real >> img;
 	Complex c(real, img);
-	
+
 	QuadEqn eq1;
 	eq1.Set(a, b, c);
 	cout << "Equation: " << eq1 << endl;
-	
-	bool flag = eq1.Solve();
-	if( flag ) {
-		cout << "Solution: z1=" << eq1.Get() << ", z2=" << eq1.Get(1) << endl;
-		cout << "Verify: " << eq1.Verify() << ", " << eq1.Verify(1) << endl;
-	}
-	else {
-		cout << "Cannot solved it by this method." << endl;
-	}
+
+	eq1.Solve();
+	cout << "Solution: z1=" << eq1.Get() << ", z2=" << eq1.Get(1) << endl;
+	cout << "Verify: " << eq1.Verify() << ", " << eq1.Verify(1) << endl;
 }
